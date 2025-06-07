@@ -9,7 +9,7 @@ jobs:
 
       # Output build artifacts to /github/workspace on the container.
       - name: Containerized Build
-        uses: darkluke1111/vsmb
+        uses: darkluke1111/vsmb@main
         with: 
           vs_version: 1.20.0
 
