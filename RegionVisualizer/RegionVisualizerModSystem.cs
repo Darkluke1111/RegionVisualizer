@@ -51,7 +51,8 @@ namespace RegionVisualizer
 
         private TextCommandResult OnRequestRegionData(TextCommandCallingArgs args)
         {
-            foreach ( var  region in sapi.WorldManager.AllLoadedMapRegions) {
+            foreach (var region in sapi.WorldManager.AllLoadedMapRegions)
+            {
                 var regionPos = sapi.WorldManager.MapRegionPosFromIndex2D(region.Key);
                 sapi.Network.GetChannel("ocean").SendPacket(new RegionData
                 {
@@ -59,7 +60,7 @@ namespace RegionVisualizer
                     rX = regionPos.X,
                     rY = regionPos.Z,
                     dataMap = region.Value.OceanMap,
-                }, (IServerPlayer)args.Caller.Player) ;
+                }, (IServerPlayer)args.Caller.Player);
 
                 sapi.Network.GetChannel("landform").SendPacket(new RegionData
                 {
@@ -120,11 +121,14 @@ namespace RegionVisualizer
                     nameMapping[i] = landforms.LandFormsByIndex[i].Code;
                 }
 
-                sapi.Network.GetChannel("landformmapping").SendPacket(new LandformMappingData()
-                {
-                    colorMapping = colorMapping, nameMapping = nameMapping
-                }, (IServerPlayer)args.Caller.Player);
+
             }
+
+            sapi.Network.GetChannel("landformmapping").SendPacket(new LandformMappingData()
+            {
+                colorMapping = colorMapping,
+                nameMapping = nameMapping
+            }, (IServerPlayer)args.Caller.Player);
 
             return TextCommandResult.Success();
         }
@@ -184,15 +188,15 @@ namespace RegionVisualizer
             return 100;
         }
 
-/*        private void OnMapRegionGen(IMapRegion mapRegion, int regionX, int regionZ, ITreeAttribute chunkGenParams)
-        {
-            sapi.Network.GetChannel("regiondata").BroadcastPacket(new RegionData()
-            {
-                rX = regionX,
-                rY = regionZ,
-                data = mapRegion.OceanMap.Data,
-            });
-        }*/
+        /*        private void OnMapRegionGen(IMapRegion mapRegion, int regionX, int regionZ, ITreeAttribute chunkGenParams)
+                {
+                    sapi.Network.GetChannel("regiondata").BroadcastPacket(new RegionData()
+                    {
+                        rX = regionX,
+                        rY = regionZ,
+                        data = mapRegion.OceanMap.Data,
+                    });
+                }*/
 
 
     }
