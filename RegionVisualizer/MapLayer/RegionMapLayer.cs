@@ -15,7 +15,7 @@ using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
-namespace RegionVisualizer
+namespace RegionVisualizer.MapLayer
 {
     public abstract class RegionMapLayer : RGBMapLayer
     {
@@ -51,17 +51,10 @@ namespace RegionVisualizer
                 var regionPos = sapi.WorldManager.MapRegionPosFromIndex2D(region.Key);
                 dataList.Add(fetchRegionData(regionPos, region.Value));
             }
-            mapSink.SendMapDataToClient(this, player, SerializerUtil.Serialize<List<RegionData>>(dataList));
+            mapSink.SendMapDataToClient(this, player, SerializerUtil.Serialize(dataList));
 
             return TextCommandResult.Success();
         }
-
-        public abstract RegionData fetchRegionData(Vec3i regionPos, IMapRegion region);
-
-        public abstract string RegionMap();
-        public abstract int RegionMapPixelSize();
-        public abstract int RGBAfromInt(int value);
-        public abstract string HoverInfoFromInt(int value);
 
         public override MapLegendItem[] LegendItems => throw new NotImplementedException();
         public override EnumMinMagFilter MinFilter => EnumMinMagFilter.Linear;
@@ -95,16 +88,6 @@ namespace RegionVisualizer
             foreach (var val in loadedMapData)
             {
                 val.Value.Render(mapElem, dt);
-            }
-        }
-
-
-        public override void OnLoaded()
-        {
-            if(capi != null)
-            {
-                byte[] data = new byte[0];
-                mapSink.SendMapDataToServer(this, data);
             }
         }
 
@@ -156,6 +139,12 @@ namespace RegionVisualizer
             hoverText.AppendLine(Title + ": " + HoverInfoFromInt(getMapDataAt(worldPos)));
             base.OnMouseMoveClient(args, mapElem, hoverText);
         }
+
+
+        public abstract RegionData fetchRegionData(Vec3i regionPos, IMapRegion region);
+        public abstract int RegionMapPixelSize { get; }
+        public abstract int RGBAfromInt(int value);
+        public abstract string HoverInfoFromInt(int value);
     }
 
 

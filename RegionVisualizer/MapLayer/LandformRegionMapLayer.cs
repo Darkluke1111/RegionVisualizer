@@ -1,61 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Vintagestory.API.Client;
+﻿using Vintagestory.API.Client;
 using Vintagestory.API.Common;
 using Vintagestory.API.MathTools;
 using Vintagestory.GameContent;
-using Vintagestory.ServerMods.NoObf;
 
-namespace RegionVisualizer
+namespace RegionVisualizer.MapLayer
 {
-    internal class OceanRegionMapLayer : RegionMapLayer
-    {
-        public OceanRegionMapLayer(ICoreAPI api, IWorldMapManager mapSink) : base(api, mapSink)
-        {
-        }
-
-        public override string Title => "Ocean";
-
-        public override string LayerGroupCode => "ocean";
-
-        public override string RegionMap() => "ocean";
-
-        public override void OnMouseMoveClient(MouseEvent args, GuiElementMap mapElem, StringBuilder hoverText)
-        {
-
-            base.OnMouseMoveClient(args, mapElem, hoverText);
-        }
-
-        public override int RegionMapPixelSize()
-        {
-            return 16;
-        }
-
-        public override int RGBAfromInt(int value)
-        {
-            return ColorUtil.ColorFromRgba(value, value, value, 128);
-        }
-
-        public override string HoverInfoFromInt(int value)
-        {
-            return value.ToString();
-        }
-
-        public override RegionData fetchRegionData(Vec3i regionPos, IMapRegion region)
-        {
-            return new RegionData
-            {
-                name = "ocean",
-                rX = regionPos.X,
-                rY = regionPos.Z,
-                dataMap = region.OceanMap,
-            };
-        }
-    }
-
     internal class LandformRegionMapLayer : RegionMapLayer
     {
         int[] colorMapping;
@@ -80,12 +29,7 @@ namespace RegionVisualizer
 
         public override string LayerGroupCode => "landform";
 
-        public override string RegionMap() => "landform";
-
-        public override int RegionMapPixelSize()
-        {
-            return 32;
-        }
+        public override int RegionMapPixelSize => 32;
 
         public override int RGBAfromInt(int value)
         {
