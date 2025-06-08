@@ -120,8 +120,8 @@ namespace RegionVisualizer.MapLayer
             int z = (int)worldPos.Z;
             int rX = x / (chunkSize * chunksPerRegion);
             int rZ = z / (chunkSize * chunksPerRegion);
-            int dX = x % (chunkSize * chunksPerRegion) * RegionMapPixelSize() / (chunkSize * chunksPerRegion);
-            int dZ = z % (chunkSize * chunksPerRegion) * RegionMapPixelSize() / (chunkSize * chunksPerRegion);
+            int dX = x % (chunkSize * chunksPerRegion) * RegionMapPixelSize / (chunkSize * chunksPerRegion);
+            int dZ = z % (chunkSize * chunksPerRegion) * RegionMapPixelSize / (chunkSize * chunksPerRegion);
 
             if (!loadedMapData.TryGetValue(new Vec2i(rX, rZ), out var value)) return -1;
 
