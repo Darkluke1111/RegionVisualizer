@@ -111,17 +111,15 @@ namespace RegionVisualizer
                         }
                     }
                 }
+            }
 
-                int[] colorMapping = new int[landforms.LandFormsByIndex.Length];
-                string[] nameMapping = new string[landforms.LandFormsByIndex.Length];
+            int[] colorMapping = new int[landforms.LandFormsByIndex.Length];
+            string[] nameMapping = new string[landforms.LandFormsByIndex.Length];
 
-                for (int i = 0; i < colorMapping.Length; i++)
-                {
-                    colorMapping[i] = landforms.LandFormsByIndex[i].ColorInt;
-                    nameMapping[i] = landforms.LandFormsByIndex[i].Code;
-                }
-
-
+            for (int i = 0; i < colorMapping.Length; i++)
+            {
+                colorMapping[i] = landforms.LandFormsByIndex[i].ColorInt;
+                nameMapping[i] = landforms.LandFormsByIndex[i].Code;
             }
 
             sapi.Network.GetChannel("landformmapping").SendPacket(new LandformMappingData()
