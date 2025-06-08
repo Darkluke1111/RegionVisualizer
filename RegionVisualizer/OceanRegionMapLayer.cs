@@ -17,7 +17,7 @@ namespace RegionVisualizer
         {
         }
 
-        public override string Title => "ocean";
+        public override string Title => "Ocean";
 
         public override string LayerGroupCode => "ocean";
 
@@ -43,6 +43,17 @@ namespace RegionVisualizer
         {
             return value.ToString();
         }
+
+        public override RegionData fetchRegionData(Vec3i regionPos, IMapRegion region)
+        {
+            return new RegionData
+            {
+                name = "ocean",
+                rX = regionPos.X,
+                rY = regionPos.Z,
+                dataMap = region.OceanMap,
+            };
+        }
     }
 
     internal class LandformRegionMapLayer : RegionMapLayer
@@ -65,7 +76,7 @@ namespace RegionVisualizer
             nameMapping = packet.nameMapping;
         }
 
-        public override string Title => "landform";
+        public override string Title => "Landform";
 
         public override string LayerGroupCode => "landform";
 
@@ -99,6 +110,17 @@ namespace RegionVisualizer
                 hexColor = ColorUtil.Int2Hex(colorMapping[value]);
             }
             return name + "(" + value + ") [" + hexColor + "]";
+        }
+
+        public override RegionData fetchRegionData(Vec3i regionPos, IMapRegion region)
+        {
+            return new RegionData
+            {
+                name = "landform",
+                rX = regionPos.X,
+                rY = regionPos.Z,
+                dataMap = region.LandformMap,
+            };
         }
     }
 }

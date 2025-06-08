@@ -2,6 +2,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,7 @@ using Vintagestory.API.Common;
 using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
+using Vintagestory.API.Util;
 using Vintagestory.GameContent;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -20,44 +22,71 @@ namespace RegionVisualizer
         ICoreClientAPI capi;
 
         public ConcurrentDictionary<Vec2i, RegionMapComponent> loadedMapData = new ConcurrentDictionary<Vec2i, RegionMapComponent>();
-        IWorldMapManager mapSink;
+        ICoreServerAPI sapi;
 
         public RegionMapLayer(ICoreAPI api, IWorldMapManager mapSink) : base(api, mapSink)
         {
             this.mapSink = mapSink;
-            if (api.Side == EnumAppSide.Client) { 
-                capi = (ICoreClientAPI)api;
-                capi.Network
-                    .GetChannel(RegionMap())
-                    .SetMessageHandler<RegionData>(OnRegionData);
+
+            if(api.Side == EnumAppSide.Server)
+            {
+                ICoreServerAPI sapi = api as ICoreServerAPI;
+                this.sapi = sapi;
+
+                sapi.ChatCommands.Create("getRegion" + Title).WithDescription("Requests Region Data for the current position").RequiresPlayer().RequiresPrivilege(Privilege.chat)
+                .HandleWith(SendRegionData);
+            } else
+            {
+                ICoreClientAPI capi = api as ICoreClientAPI;
+                this.capi = capi;
             }
         }
+
+        public TextCommandResult SendRegionData(TextCommandCallingArgs args)
+        {
+            var player = args.Caller.Player as IServerPlayer;
+            var dataList = new List<RegionData>();
+            foreach (var region in sapi.WorldManager.AllLoadedMapRegions)
+            {
+                var regionPos = sapi.WorldManager.MapRegionPosFromIndex2D(region.Key);
+                dataList.Add(fetchRegionData(regionPos, region.Value));
+            }
+            mapSink.SendMapDataToClient(this, player, SerializerUtil.Serialize<List<RegionData>>(dataList));
+
+            return TextCommandResult.Success();
+        }
+
+        public abstract RegionData fetchRegionData(Vec3i regionPos, IMapRegion region);
 
         public abstract string RegionMap();
         public abstract int RegionMapPixelSize();
         public abstract int RGBAfromInt(int value);
         public abstract string HoverInfoFromInt(int value);
 
-        private void OnRegionData(RegionData packet)
-        {
-            Vec2i pos = new Vec2i(packet.rX, packet.rY);
-            RegionMapComponent regionMapComponent;
-            if (!loadedMapData.TryGetValue(pos, out regionMapComponent)) { 
-                regionMapComponent = new RegionMapComponent(capi, pos, this);
-            }
-             
-            regionMapComponent.setRegion(packet.dataMap);
-            loadedMapData[pos] = regionMapComponent;
-
-        }
-
         public override MapLegendItem[] LegendItems => throw new NotImplementedException();
         public override EnumMinMagFilter MinFilter => EnumMinMagFilter.Linear;
         public override EnumMinMagFilter MagFilter => EnumMinMagFilter.Nearest;
-        public override EnumMapAppSide DataSide => EnumMapAppSide.Client;
+        public override EnumMapAppSide DataSide => EnumMapAppSide.Server;
 
+        public override bool RequireChunkLoaded => true;
 
+        public override void OnDataFromServer(byte[] data)
+        {
+            var dataList = SerializerUtil.Deserialize<List<RegionData>>(data);
+            foreach (var packet in dataList)
+            {
+                Vec2i pos = new Vec2i(packet.rX, packet.rY);
+                RegionMapComponent regionMapComponent;
+                if (!loadedMapData.TryGetValue(pos, out regionMapComponent))
+                {
+                    regionMapComponent = new RegionMapComponent(capi, pos, this);
+                }
 
+                regionMapComponent.setRegion(packet.dataMap);
+                loadedMapData[pos] = regionMapComponent;
+            }
+
+        }
 
         public override void Render(GuiElementMap mapElem, float dt)
         {
@@ -66,6 +95,16 @@ namespace RegionVisualizer
             foreach (var val in loadedMapData)
             {
                 val.Value.Render(mapElem, dt);
+            }
+        }
+
+
+        public override void OnLoaded()
+        {
+            if(capi != null)
+            {
+                byte[] data = new byte[0];
+                mapSink.SendMapDataToServer(this, data);
             }
         }
 
