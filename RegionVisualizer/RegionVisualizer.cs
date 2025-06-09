@@ -108,7 +108,7 @@ namespace RegionVisualizer
             //api.Event.MapRegionGeneration(OnMapRegionGen, "standard");
 
             var parsers = api.ChatCommands.Parsers;
-            api.ChatCommands.Create("getRegion").WithDescription("Requests Region Data for the current position").RequiresPlayer().RequiresPrivilege(Privilege.chat)
+            api.ChatCommands.Create("getMapping").WithDescription("Requests Landscape Mapping").RequiresPlayer().RequiresPrivilege(Privilege.chat)
                 .HandleWith(OnRequestRegionData);
             api.ChatCommands.Create("worldInfo").WithDescription("Desplays several world setting constants").RequiresPlayer().RequiresPrivilege(Privilege.chat).HandleWith(OnRequestWorldInfo);
         }

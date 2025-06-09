@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Sockets;
+using System.Numerics;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ using Vintagestory.API.Config;
 using Vintagestory.API.MathTools;
 using Vintagestory.API.Server;
 using Vintagestory.API.Util;
+using Vintagestory.Common;
 using Vintagestory.GameContent;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 
@@ -34,7 +36,9 @@ namespace RegionVisualizer.MapLayer
                 this.sapi = sapi;
 
                 sapi.ChatCommands.Create("getRegion" + Title).WithDescription("Requests Region Data for the current position").RequiresPlayer().RequiresPrivilege(Privilege.chat)
-                .HandleWith(SendRegionData);
+                .HandleWith(OnGetRegionCommand);
+
+                sapi.Event.MapRegionLoaded += OnRegionLoaded;
             } else
             {
                 ICoreClientAPI capi = api as ICoreClientAPI;
@@ -42,23 +46,45 @@ namespace RegionVisualizer.MapLayer
             }
         }
 
-        public TextCommandResult SendRegionData(TextCommandCallingArgs args)
+        public override void OnMapOpenedServer(IServerPlayer fromPlayer)
+        {
+            SendRegionData(fromPlayer, sapi.WorldManager.AllLoadedMapRegions);
+        }
+
+        private void OnRegionLoaded(Vec2i mapCoord, IMapRegion region)
+        {
+            Vec3d worldPos = new Vec3d(mapCoord.X, 0, mapCoord.Y) * sapi.WorldManager.RegionSize;
+            var closePlayers = sapi.World.AllOnlinePlayers;
+            var data = new Dictionary<long, IMapRegion>();
+            data.Add(sapi.WorldManager.MapRegionIndex2D(mapCoord.X, mapCoord.Y), region);
+            foreach( var player in closePlayers)
+            {
+                SendRegionData(player as IServerPlayer, data);
+            }
+            
+        }
+
+        public TextCommandResult OnGetRegionCommand(TextCommandCallingArgs args)
         {
             var player = args.Caller.Player as IServerPlayer;
-            var dataList = new List<RegionData>();
-            foreach (var region in sapi.WorldManager.AllLoadedMapRegions)
+            SendRegionData(player, sapi.WorldManager.AllLoadedMapRegions);
+            return TextCommandResult.Success();
+        }
+
+        public void SendRegionData(IServerPlayer toPlayer, Dictionary<long,IMapRegion> regions)
+        {
+            List<RegionData> dataList = new List<RegionData>();
+            foreach (var region in regions)
             {
                 var regionPos = sapi.WorldManager.MapRegionPosFromIndex2D(region.Key);
                 var regionData = fetchRegionData(regionPos, region.Value);
-                if(regionData != null && regionData.dataMap != null)
+                if (regionData != null && regionData.dataMap != null)
                 {
                     dataList.Add(regionData);
                 }
 
             }
-            mapSink.SendMapDataToClient(this, player, SerializerUtil.Serialize(dataList));
-
-            return TextCommandResult.Success();
+            mapSink.SendMapDataToClient(this, toPlayer, SerializerUtil.Serialize(dataList));
         }
 
         public override MapLegendItem[] LegendItems => throw new NotImplementedException();
