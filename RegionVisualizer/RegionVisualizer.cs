@@ -31,6 +31,7 @@ namespace RegionVisualizer
             worldMapManager = api.ModLoader.GetModSystem<WorldMapManager>();
             worldMapManager.RegisterMapLayer<OceanRegionMapLayer>("ocean", -1);
             worldMapManager.RegisterMapLayer<LandformRegionMapLayer>("landform", -2);
+            worldMapManager.RegisterMapLayer<AltitudeRegionMapLayer>("altitude", -3);
 
         }
 

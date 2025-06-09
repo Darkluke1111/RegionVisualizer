@@ -38,7 +38,6 @@ namespace RegionVisualizer
 
         public void setRegion(IntDataMap2D dataMap)
         {
-            capi.Logger.Debug(regionCoord.X + " " + regionCoord.Y + " " + dataMap.InnerSize);
             mapData = dataMap;
             regionMapSize = dataMap.InnerSize;
             if (texture == null || texture.Disposed)

@@ -49,7 +49,12 @@ namespace RegionVisualizer.MapLayer
             foreach (var region in sapi.WorldManager.AllLoadedMapRegions)
             {
                 var regionPos = sapi.WorldManager.MapRegionPosFromIndex2D(region.Key);
-                dataList.Add(fetchRegionData(regionPos, region.Value));
+                var regionData = fetchRegionData(regionPos, region.Value);
+                if(regionData != null && regionData.dataMap != null)
+                {
+                    dataList.Add(regionData);
+                }
+
             }
             mapSink.SendMapDataToClient(this, player, SerializerUtil.Serialize(dataList));
 
